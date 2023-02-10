@@ -1,0 +1,139 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        #upcomingweather,#weather div {
+            border: 2px solid black;
+            text-align:center;
+            margin-top:50px;
+        }
+        p {
+            border: 1px solid black;
+        }
+        .button{
+            display:block;
+        }
+    </style>
+</head>
+<body>
+    <div class="button">
+        <button onclick="getUpcomingWeather()">Show upcoming weathers</button>
+    </div>
+    <div class="button">
+        <input id="insertedDate" type="date" />
+        <button onclick="getWeather()">Show weather</button>
+    </div>
+    <div class="button">
+        <input id="set_or_update_weather" type="datetime-local" />
+        <input id="degree_to_insert" type="number" />
+        <button onclick="setOrUpdateWeather()">set or update weather</button>
+    </div>
+    <div id="weather" style="display: none; width: 60%; grid-template-columns: auto auto; ">
+        <div id="date">
+            <h2>weather date</h2>
+        </div>
+        <div id="degree">
+            <h2>weather degree</h2>
+        </div>
+    </div>
+    <div id="upcomingweather" style="display: none; width: 60%; grid-template-columns: auto auto auto; ">
+        <div id="weather_date">
+            <h2>weather date</h2>
+        </div>
+        <div id="weather_degree">
+            <h2>weather degree</h2>
+        </div>
+        <div id="upcoming_weather_date">
+            <h2>upcoming weather date</h2>
+        </div>
+    </div>
+    <script>
+
+        function getWeather() {
+
+            let elem = document.getElementById("weather");
+
+            if (elem.style.display == "none") {
+                document.getElementById("weather").style.display = "grid";
+
+                date_val = document.getElementById("insertedDate").value
+
+                let xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "weather/WeatherOfDay?day=" + date_val, false);
+                xhttp.send();
+                let result = JSON.parse(xhttp.responseText);
+
+
+                for (let i = 0; i < result.length; i++) {
+
+                    const weatherDate = document.createElement("p");
+                    const degree = document.createElement("p");
+
+                    weatherDate.innerText = result[i]["weatherDate"];
+                    degree.innerText = result[i]["degree"];
+
+                    document.getElementById("date").appendChild(weatherDate);
+                    document.getElementById("degree").appendChild(degree);
+                }
+            }
+            else {
+                document.getElementById("weather").style.display = "none";
+
+                document.getElementById("date").innerHTML = "";
+                document.getElementById("degree").innerHTML = "";
+            }
+        }
+
+        function getUpcomingWeather() {
+            let style = document.getElementById("upcomingweather").style.display;
+            if (style == "none") {
+                document.getElementById("upcomingweather").style.display = "grid";
+
+                let xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "weather/UpcomingWeather", false);
+                xhttp.send();
+                let result = JSON.parse(xhttp.responseText);
+
+
+                for (let i = 0; i < result.length; i++) {
+
+                    const weatherDate = document.createElement("p");
+                    const degree = document.createElement("p");
+                    const upcomingWeatherDate = document.createElement("p");
+
+                    weatherDate.innerText = result[i]["weatherDate"].toString();
+                    degree.innerText = result[i]["degree"];
+                    upcomingWeatherDate.innerText = result[i]["upcomingWeatherDate"] ?? "-";
+
+                    document.getElementById("weather_date").appendChild(weatherDate);
+                    document.getElementById("weather_degree").appendChild(degree);
+                    document.getElementById("upcoming_weather_date").appendChild(upcomingWeatherDate);
+                }
+            }
+            else {
+                document.getElementById("upcomingweather").style.display = "none";
+
+                document.getElementById("weather_date").innerHTML = "";
+                document.getElementById("weather_degree").innerHTML = "";
+                document.getElementById("upcoming_weather_date").innerHTML = "";
+            }
+        }
+
+        function setOrUpdateWeather() {
+            let date = new Date(document.getElementById("set_or_update_weather").value).toISOString();
+            let data = [{
+                weatherDate: date,
+                degree: +document.getElementById("degree_to_insert").value
+            }]
+
+            let xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "weather/SetOrUpdateWeather", false);
+            xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+            xhttp.send(JSON.stringify(data));
+            let result = JSON.parse(xhttp.responseText);
+        }
+    </script>
+</body>
+</html>
